@@ -560,57 +560,89 @@ async def generate_candidate_pdf(candidate_ids: List[str] = [], current_user: di
     if not candidates:
         raise HTTPException(status_code=404, detail="No candidates found")
     
-    # Generate HTML for PDF (hiding contact details)
-    html_content = """
-    <html>
-    <head>
-        <style>
-            @page { size: A4; margin: 2cm; }
-            body { font-family: Arial, sans-serif; }
-            .header { text-align: right; margin-bottom: 20px; }
-            .logo { width: 100px; height: auto; }
-            .candidate { page-break-after: always; margin-bottom: 30px; padding: 20px; border: 1px solid #ccc; }
-            .candidate:last-child { page-break-after: auto; }
-            h2 { color: #4F46E5; margin-bottom: 10px; }
-            .field { margin-bottom: 8px; }
-            .label { font-weight: bold; color: #555; }
-            .note { font-style: italic; color: #888; margin-top: 20px; }
-        </style>
-    </head>
-    <body>
-    """
+    # Create PDF in memory
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
     
-    for candidate in candidates:
-        html_content += f"""
-        <div class="candidate">
-            <div class="header">
-                <div style="color: #4F46E5; font-weight: bold; font-size: 18px;">Recruitment Hub</div>
-            </div>
-            <h2>{candidate['name']}</h2>
-            <div class="field"><span class="label">Qualification:</span> {candidate['qualification']}</div>
-            <div class="field"><span class="label">Current Designation:</span> {candidate['current_designation']}</div>
-            <div class="field"><span class="label">Department:</span> {candidate['department']}</div>
-            <div class="field"><span class="label">Industry:</span> {candidate['industry_sector']}</div>
-            <div class="field"><span class="label">Location:</span> {candidate['current_location']}</div>
-            <div class="field"><span class="label">Experience:</span> {candidate['years_of_experience']} years</div>
-            <div class="field"><span class="label">Current CTC:</span> ₹{candidate['current_ctc']} LPA</div>
-            <div class="field"><span class="label">Expected CTC:</span> ₹{candidate['expected_ctc']} LPA</div>
-            <div class="field"><span class="label">Notice Period:</span> {candidate['notice_period']}</div>
-            <p class="note">Contact details available upon request.</p>
-        </div>
-        """
+    # Container for PDF elements
+    elements = []
     
-    html_content += "</body></html>"
+    # Styles
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=18,
+        textColor=colors.HexColor('#4F46E5'),
+        spaceAfter=12
+    )
+    heading_style = ParagraphStyle(
+        'CustomHeading',
+        parent=styles['Heading2'],
+        fontSize=12,
+        textColor=colors.HexColor('#64748b'),
+        spaceAfter=6
+    )
     
-    # Generate PDF
-    pdf_bytes = HTML(string=html_content).write_pdf()
+    # Add company header
+    header_text = Paragraph('<font color="#4F46E5"><b>RecruitHub</b></font>', styles['Heading1'])
+    elements.append(header_text)
+    elements.append(Spacer(1, 0.3 * inch))
+    
+    # Add each candidate
+    for idx, candidate in enumerate(candidates):
+        if idx > 0:
+            elements.append(Spacer(1, 0.3 * inch))
+        
+        # Candidate name as title
+        elements.append(Paragraph(f'<b>{candidate["name"]}</b>', title_style))
+        
+        # Candidate details table
+        data = [
+            ['Qualification:', candidate['qualification']],
+            ['Current Designation:', candidate['current_designation']],
+            ['Department:', candidate['department']],
+            ['Industry:', candidate['industry_sector']],
+            ['Location:', candidate['current_location']],
+            ['Experience:', f'{candidate["years_of_experience"]} years'],
+            ['Current CTC:', f'₹{candidate["current_ctc"]} LPA'],
+            ['Expected CTC:', f'₹{candidate["expected_ctc"]} LPA'],
+            ['Notice Period:', candidate['notice_period']]
+        ]
+        
+        t = Table(data, colWidths=[2*inch, 4*inch])
+        t.setStyle(TableStyle([
+            ('FONT', (0, 0), (0, -1), 'Helvetica-Bold', 10),
+            ('FONT', (1, 0), (1, -1), 'Helvetica', 10),
+            ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#64748b')),
+            ('TEXTCOLOR', (1, 0), (1, -1), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        elements.append(t)
+        
+        # Note about contact details
+        elements.append(Spacer(1, 0.2 * inch))
+        note = Paragraph('<i><font color="#888888">Contact details available upon request.</font></i>', styles['Normal'])
+        elements.append(note)
+        
+        if idx < len(candidates) - 1:
+            elements.append(Spacer(1, 0.4 * inch))
+    
+    # Build PDF
+    doc.build(elements)
+    
+    # Get PDF bytes
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
     
     # Return as base64 for preview
     pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
     
     return {
         "pdf_base64": pdf_base64,
-        "filename": f"candidates_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        "filename": f"candidates_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.pdf"
     }
 
 @api_router.post("/candidates/share-email-draft")
