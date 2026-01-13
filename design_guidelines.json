@@ -1,0 +1,160 @@
+{
+  "identity": {
+    "persona": "E1",
+    "philosophy": "Soft Utility - Approachable but structured. Data density without visual clutter.",
+    "principles": [
+      "Fusion over Imitation: Mix Swiss Grid precision with Soft UI warmth.",
+      "Content is King: Data legibility is the primary goal.",
+      "Negative Space: Use whitespace to group data, not lines.",
+      "Contrast: High contrast for text, subtle contrast for containers."
+    ]
+  },
+  "typography": {
+    "fonts": {
+      "headings": "Manrope",
+      "body": "Public Sans"
+    },
+    "weights": {
+      "headings": "font-semibold or font-bold",
+      "body": "font-normal or font-medium"
+    },
+    "rules": [
+      "Headings > 32px must use tracking-tight.",
+      "Overlines/Labels must be uppercase, text-xs, tracking-widest.",
+      "Line height: leading-none for headers, leading-relaxed for body."
+    ]
+  },
+  "colors": {
+    "palette": {
+      "primary": {
+        "name": "Electric Indigo",
+        "hex": "#4F46E5",
+        "tailwind": "indigo-600",
+        "usage": "Primary Actions, Active States, Brand Highlights"
+      },
+      "secondary": {
+        "name": "Sharp Orange",
+        "hex": "#F97316",
+        "tailwind": "orange-500",
+        "usage": "Alerts, Notifications, 'New' Badges"
+      },
+      "background": {
+        "light": "#F8FAFC",
+        "dark": "#0F172A",
+        "tailwind_light": "slate-50",
+        "tailwind_dark": "slate-900"
+      },
+      "surface": {
+        "light": "#FFFFFF",
+        "dark": "#1E293B",
+        "tailwind_light": "white",
+        "tailwind_dark": "slate-800"
+      },
+      "text": {
+        "primary": "slate-900",
+        "secondary": "slate-500",
+        "muted": "slate-400"
+      }
+    },
+    "chart_colors": [
+      "#4F46E5",
+      "#8B5CF6",
+      "#10B981",
+      "#F59E0B",
+      "#EF4444"
+    ],
+    "forbidden": [
+      "#1B93A4 (Teal)",
+      "Generic SaaS Blue (#3B82F6) as primary"
+    ]
+  },
+  "layout": {
+    "spacing_scale": "p-1, p-2, p-4, p-6, p-8, p-12, p-16, p-20, p-24, p-32",
+    "grid_systems": {
+      "dashboard": {
+        "name": "Control Room Grid",
+        "cols": "grid-cols-1 md:grid-cols-3 lg:grid-cols-4",
+        "gap": "gap-4 or gap-6",
+        "rules": "Dense, compact. Every pixel utilized. No jagged bottoms."
+      },
+      "marketing": {
+        "name": "Tetris Grid",
+        "cols": "grid-cols-1 md:grid-cols-8 lg:grid-cols-12",
+        "gap": "gap-8 to gap-12",
+        "rules": "Asymmetry, visual tension. Mix hero, square, tall, and filler shapes."
+      }
+    },
+    "container_rules": "Containers with borders must have internal padding (p-6 or p-8)."
+  },
+  "components": {
+    "cards": {
+      "style": "Neumorphism (Tactile)",
+      "classes": "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-200",
+      "radius": "rounded-xl"
+    },
+    "buttons": {
+      "primary": "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm hover:shadow-indigo-500/20 rounded-lg px-6 py-2.5 font-medium transition-all",
+      "secondary": "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-sm rounded-lg px-6 py-2.5 font-medium transition-all",
+      "ghost": "text-slate-600 hover:bg-slate-100 hover:text-slate-900 rounded-lg px-4 py-2 transition-all"
+    },
+    "inputs": {
+      "style": "bg-white border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-lg shadow-sm"
+    },
+    "navigation": {
+      "sidebar": "bg-slate-900 text-slate-300 w-64 h-screen fixed left-0 top-0 border-r border-slate-800",
+      "active_link": "bg-indigo-600/10 text-indigo-400 border-r-2 border-indigo-500"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": "backdrop-blur-xl bg-white/70 border border-white/20 shadow-sm",
+    "gradients": "No full-screen gradients. Use subtle mesh gradients in hero sections only.",
+    "shadows": "Layered shadows: shadow-sm for cards, shadow-xl for modals/dropdowns.",
+    "motion": "Use Framer Motion for page transitions and list entrance animations (staggerChildren)."
+  },
+  "images": {
+    "avatars": [
+      {
+        "url": "https://images.unsplash.com/photo-1623594675959-02360202d4d6?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdCUyMHNtaWxpbmd8ZW58MHx8fHwxNzY4MjUyMjI3fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Professional Woman Smiling",
+        "category": "User Avatar"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1599242460737-5174dba06145?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHw0fHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdCUyMHNtaWxpbmd8ZW58MHx8fHwxNzY4MjUyMjI3fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Professional Man Smiling",
+        "category": "User Avatar"
+      }
+    ],
+    "logos": [
+      {
+        "url": "https://images.unsplash.com/photo-1694878981750-3b1f8d97abff?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwzfHxtaW5pbWFsaXN0JTIwYWJzdHJhY3QlMjBjb21wYW55JTIwbG9nb3xlbnwwfHx8fDE3NjgzMDcxNjJ8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Abstract Glass Art",
+        "category": "Client Logo Placeholder"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1704121112762-86661f0ae5a7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHw0fHxtaW5pbWFsaXN0JTIwYWJzdHJhY3QlMjBjb21wYW55JTIwbG9nb3xlbnwwfHx8fDE3NjgzMDcxNjJ8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Abstract Geometric Art",
+        "category": "Client Logo Placeholder"
+      }
+    ],
+    "office": [
+      {
+        "url": "https://images.unsplash.com/photo-1758518729685-f88df7890776?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBvZmZpY2UlMjB0ZWFtJTIwY29sbGFib3JhdGlvbnxlbnwwfHx8fDE3NjgzMDcxNjN8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Team Meeting Top View",
+        "category": "Dashboard Widget / Login Hero"
+      }
+    ]
+  },
+  "universal_guidelines": [
+    "Do not use 'Inter' for headings. Use 'Manrope'.",
+    "Do not use generic teal (#1B93A4).",
+    "Do not center-align everything. Use asymmetry.",
+    "Use 2-3x more spacing than typical designs.",
+    "All interactive elements must have data-testid attributes.",
+    "Use 'sonner' for toasts.",
+    "Use 'lucide-react' for icons.",
+    "Do not use AI emojis (🤖, 🚀, etc).",
+    "Dark colors look good when used independently without gradients.",
+    "Create depth through layered design elements with z-index hierarchy."
+  ],
+  "instructions_to_main_agent": "You are building a Recruitment Management System. Use the 'Control Room' grid for dashboards. Use the 'Tetris' grid for the candidate profile page. Implement the 'Electric Indigo' theme. Use the provided image URLs for avatars and logos. Ensure all forms use Shadcn components with the specified overrides."
+}
