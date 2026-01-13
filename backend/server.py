@@ -43,6 +43,11 @@ app = FastAPI()
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+# Add root route
+@api_router.get("/")
+async def root():
+    return {"message": "Recruitment Management API", "status": "running"}
+
 # Ensure upload directories exist
 UPLOADS_DIR = ROOT_DIR / 'uploads'
 JD_DIR = UPLOADS_DIR / 'jds'
