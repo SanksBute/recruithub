@@ -554,7 +554,7 @@ async def candidate_action(candidate_id: str, action_data: ProfileAction, curren
 
 # Profile sharing and PDF generation
 @api_router.post("/candidates/generate-pdf")
-async def generate_candidate_pdf(candidate_ids: List[str], current_user: dict = Depends(check_role([UserRole.MANAGER, UserRole.TEAM_LEADER, UserRole.ADMIN]))):
+async def generate_candidate_pdf(candidate_ids: List[str] = [], current_user: dict = Depends(check_role([UserRole.MANAGER, UserRole.TEAM_LEADER, UserRole.ADMIN]))):
     candidates = await db.candidates.find({"id": {"$in": candidate_ids}}, {"_id": 0}).to_list(100)
     
     if not candidates:
