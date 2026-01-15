@@ -366,16 +366,40 @@ const Positions = () => {
             <Card key={position.id} data-testid={`position-card-${position.id}`} className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 rounded-xl">
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1">
                     <div className="p-2 bg-purple-50 rounded-lg">
                       <Briefcase className="h-5 w-5 text-purple-600" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <CardTitle className="text-xl" style={{ fontFamily: 'Manrope' }}>{position.job_title}</CardTitle>
                       <p className="text-sm text-slate-600">{client?.client_name}</p>
                     </div>
                   </div>
-                  <Badge className={getStatusColor(position.status)}>{position.status.replace('_', ' ')}</Badge>
+                  <div className="flex gap-1">
+                    <Badge className={getStatusColor(position.status)}>{position.status.replace('_', ' ')}</Badge>
+                    {canEdit && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(position)}
+                        data-testid={`edit-position-${position.id}`}
+                        className="h-8 w-8 p-0 ml-2"
+                      >
+                        <Edit className="h-4 w-4 text-slate-600" />
+                      </Button>
+                    )}
+                    {canDelete && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(position.id)}
+                        data-testid={`delete-position-${position.id}`}
+                        className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
