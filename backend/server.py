@@ -604,6 +604,19 @@ async def update_client(client_id: str, client_data: ClientCreate, current_user:
     updated_client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     return updated_client
 
+@api_router.delete("/clients/{client_id}")
+async def delete_client(client_id: str, current_user: dict = Depends(check_role([UserRole.ADMIN]))):
+    # Check if client has positions
+    positions = await db.positions.find_one({"client_id": client_id}, {"_id": 0})
+    if positions:
+        raise HTTPException(status_code=400, detail="Cannot delete client with existing positions")
+    
+    result = await db.clients.delete_one({"id": client_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    return {"message": "Client deleted successfully"}
+
 # Position routes
 @api_router.post("/positions", response_model=Position)
 async def create_position(position_data: PositionCreate, current_user: dict = Depends(check_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.TEAM_LEADER]))):
