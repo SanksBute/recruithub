@@ -82,6 +82,64 @@ const Candidates = () => {
     }
   };
 
+  const handleBulkUpload = async (e) => {
+    e.preventDefault();
+    
+    if (!bulkPositionId) {
+      toast.error('Please select a position');
+      return;
+    }
+    
+    if (!bulkUploadFiles || bulkUploadFiles.length === 0) {
+      toast.error('Please select resume files');
+      return;
+    }
+    
+    setUploading(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('position_id', bulkPositionId);
+      
+      for (let i = 0; i < bulkUploadFiles.length; i++) {
+        formData.append('files', bulkUploadFiles[i]);
+      }
+      
+      const response = await axios.post(
+        `${API_URL}/candidates/bulk-upload`,
+        formData,
+        {
+          ...getAuthHeader(),
+          headers: {
+            ...getAuthHeader().headers,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+      
+      const { successful, failed, total } = response.data;
+      
+      if (successful.length > 0) {
+        toast.success(`Successfully uploaded ${successful.length} out of ${total} resumes!`);
+      }
+      
+      if (failed.length > 0) {
+        toast.warning(`${failed.length} resumes failed to upload. Check console for details.`);
+        console.log('Failed uploads:', failed);
+      }
+      
+      setDialogOpen(false);
+      setBulkUploadFiles([]);
+      setBulkPositionId('');
+      fetchCandidates();
+    } catch (error) {
+      toast.error('Failed to upload resumes');
+      console.error('Bulk upload error:', error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const getStatusColor = (status) => {
     const colors = {
       sourced: 'bg-slate-100 text-slate-800',
