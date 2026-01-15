@@ -21,6 +21,10 @@ from reportlab.lib.units import inch
 import io
 import base64
 from enum import Enum
+import re
+import pdfplumber
+from docx import Document
+from typing import Union
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
