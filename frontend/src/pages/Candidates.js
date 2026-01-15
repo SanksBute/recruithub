@@ -259,7 +259,7 @@ const Candidates = () => {
           </DialogTrigger>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle style={{ fontFamily: 'Manrope' }}>Add Candidates</DialogTitle>
+              <DialogTitle style={{ fontFamily: 'Manrope' }}>{editingCandidate ? 'Edit Candidate' : 'Add Candidates'}</DialogTitle>
             </DialogHeader>
             
             <Tabs defaultValue="manual" className="w-full">
