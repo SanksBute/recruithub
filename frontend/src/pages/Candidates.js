@@ -175,145 +175,232 @@ const Candidates = () => {
           </DialogTrigger>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle style={{ fontFamily: 'Manrope' }}>Add New Candidate</DialogTitle>
+              <DialogTitle style={{ fontFamily: 'Manrope' }}>Add Candidates</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="position_id">Position *</Label>
-                <Select value={formData.position_id} onValueChange={(value) => setFormData({ ...formData, position_id: value })} required>
-                  <SelectTrigger data-testid="position-select">
-                    <SelectValue placeholder="Select position" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {positions.map((position) => (
-                      <SelectItem key={position.id} value={position.id}>{position.job_title}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name *</Label>
-                  <Input
-                    id="name"
-                    data-testid="candidate-name-input"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="contact_number">Contact Number *</Label>
-                  <Input
-                    id="contact_number"
-                    value={formData.contact_number}
-                    onChange={(e) => setFormData({ ...formData, contact_number: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="qualification">Qualification *</Label>
-                  <Input
-                    id="qualification"
-                    value={formData.qualification}
-                    onChange={(e) => setFormData({ ...formData, qualification: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="industry_sector">Industry Sector *</Label>
-                  <Input
-                    id="industry_sector"
-                    value={formData.industry_sector}
-                    onChange={(e) => setFormData({ ...formData, industry_sector: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="current_designation">Current Designation *</Label>
-                  <Input
-                    id="current_designation"
-                    value={formData.current_designation}
-                    onChange={(e) => setFormData({ ...formData, current_designation: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="department">Department *</Label>
-                  <Input
-                    id="department"
-                    value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="current_location">Current Location *</Label>
-                  <Input
-                    id="current_location"
-                    value={formData.current_location}
-                    onChange={(e) => setFormData({ ...formData, current_location: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="current_ctc">Current CTC (LPA) *</Label>
-                  <Input
-                    id="current_ctc"
-                    type="number"
-                    step="0.1"
-                    value={formData.current_ctc}
-                    onChange={(e) => setFormData({ ...formData, current_ctc: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="expected_ctc">Expected CTC (LPA) *</Label>
-                  <Input
-                    id="expected_ctc"
-                    type="number"
-                    step="0.1"
-                    value={formData.expected_ctc}
-                    onChange={(e) => setFormData({ ...formData, expected_ctc: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="years_of_experience">Years of Experience *</Label>
-                  <Input
-                    id="years_of_experience"
-                    type="number"
-                    step="0.1"
-                    value={formData.years_of_experience}
-                    onChange={(e) => setFormData({ ...formData, years_of_experience: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="notice_period">Notice Period *</Label>
-                  <Input
-                    id="notice_period"
-                    placeholder="e.g., 30 days"
-                    value={formData.notice_period}
-                    onChange={(e) => setFormData({ ...formData, notice_period: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-              <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700">
-                Add Candidate
-              </Button>
-            </form>
+            
+            <Tabs defaultValue="manual" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="manual" data-testid="manual-upload-tab">
+                  <User className="h-4 w-4 mr-2" />
+                  Manual Entry
+                </TabsTrigger>
+                <TabsTrigger value="bulk" data-testid="bulk-upload-tab">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Bulk Upload Resumes
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="manual">
+                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="position_id">Position *</Label>
+                    <Select value={formData.position_id} onValueChange={(value) => setFormData({ ...formData, position_id: value })} required>
+                      <SelectTrigger data-testid="position-select">
+                        <SelectValue placeholder="Select position" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {positions.map((position) => (
+                          <SelectItem key={position.id} value={position.id}>{position.job_title}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Name *</Label>
+                      <Input
+                        id="name"
+                        data-testid="candidate-name-input"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="contact_number">Contact Number *</Label>
+                      <Input
+                        id="contact_number"
+                        value={formData.contact_number}
+                        onChange={(e) => setFormData({ ...formData, contact_number: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="qualification">Qualification *</Label>
+                      <Input
+                        id="qualification"
+                        value={formData.qualification}
+                        onChange={(e) => setFormData({ ...formData, qualification: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="industry_sector">Industry Sector *</Label>
+                      <Input
+                        id="industry_sector"
+                        value={formData.industry_sector}
+                        onChange={(e) => setFormData({ ...formData, industry_sector: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="current_designation">Current Designation *</Label>
+                      <Input
+                        id="current_designation"
+                        value={formData.current_designation}
+                        onChange={(e) => setFormData({ ...formData, current_designation: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="department">Department *</Label>
+                      <Input
+                        id="department"
+                        value={formData.department}
+                        onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="current_location">Current Location *</Label>
+                      <Input
+                        id="current_location"
+                        value={formData.current_location}
+                        onChange={(e) => setFormData({ ...formData, current_location: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="current_ctc">Current CTC (LPA) *</Label>
+                      <Input
+                        id="current_ctc"
+                        type="number"
+                        step="0.1"
+                        value={formData.current_ctc}
+                        onChange={(e) => setFormData({ ...formData, current_ctc: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="expected_ctc">Expected CTC (LPA) *</Label>
+                      <Input
+                        id="expected_ctc"
+                        type="number"
+                        step="0.1"
+                        value={formData.expected_ctc}
+                        onChange={(e) => setFormData({ ...formData, expected_ctc: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="years_of_experience">Years of Experience *</Label>
+                      <Input
+                        id="years_of_experience"
+                        type="number"
+                        step="0.1"
+                        value={formData.years_of_experience}
+                        onChange={(e) => setFormData({ ...formData, years_of_experience: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="notice_period">Notice Period *</Label>
+                      <Input
+                        id="notice_period"
+                        placeholder="e.g., 30 days"
+                        value={formData.notice_period}
+                        onChange={(e) => setFormData({ ...formData, notice_period: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700">
+                    Add Candidate
+                  </Button>
+                </form>
+              </TabsContent>
+              
+              <TabsContent value="bulk">
+                <form onSubmit={handleBulkUpload} className="space-y-4 mt-4">
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-start gap-3">
+                      <FileText className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div className="flex-1">
+                        <h4 className="font-medium text-blue-900 mb-1">Bulk Resume Upload</h4>
+                        <p className="text-sm text-blue-700">
+                          Upload multiple resumes (PDF or DOCX) and we'll automatically extract candidate information including name, email, phone, and experience.
+                        </p>
+                        <p className="text-xs text-blue-600 mt-2">
+                          Supported formats: PDF, DOCX
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="bulk_position_id">Position *</Label>
+                    <Select value={bulkPositionId} onValueChange={setBulkPositionId} required>
+                      <SelectTrigger data-testid="bulk-position-select">
+                        <SelectValue placeholder="Select position for all candidates" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {positions.map((position) => (
+                          <SelectItem key={position.id} value={position.id}>{position.job_title}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="resume_files">Upload Resumes *</Label>
+                    <Input
+                      id="resume_files"
+                      data-testid="bulk-upload-input"
+                      type="file"
+                      multiple
+                      accept=".pdf,.docx"
+                      onChange={(e) => setBulkUploadFiles(e.target.files)}
+                      required
+                      className="cursor-pointer"
+                    />
+                    {bulkUploadFiles && bulkUploadFiles.length > 0 && (
+                      <p className="text-sm text-slate-600">
+                        {bulkUploadFiles.length} file(s) selected
+                      </p>
+                    )}
+                  </div>
+                  
+                  <Button 
+                    type="submit" 
+                    data-testid="bulk-upload-submit"
+                    className="w-full bg-indigo-600 hover:bg-indigo-700"
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <>
+                        <Upload className="mr-2 h-4 w-4 animate-pulse" />
+                        Uploading and Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Resumes
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
           </DialogContent>
         </Dialog>
       </div>
