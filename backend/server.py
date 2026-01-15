@@ -510,6 +510,8 @@ def parse_resume(file_path: str) -> dict:
         'contact_number': extract_phone(text),
         'years_of_experience': extract_experience_years(text),
         'skills': extract_skills(text),
+        'current_designation': extract_designation(text),
+        'current_location': extract_location(text),
         'raw_text': text[:500]  # Store first 500 chars for reference
     }
     
