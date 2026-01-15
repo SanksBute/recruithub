@@ -194,8 +194,18 @@ const Positions = () => {
           </h1>
           <p className="text-slate-600 mt-2">{positions.length} total positions</p>
         </div>
-        {canAddPosition && (
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <div className="flex gap-3">
+          <Button
+            onClick={handleExportCSV}
+            variant="outline"
+            data-testid="export-positions-csv"
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
+          {canAddPosition && (
+            <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
             <DialogTrigger asChild>
               <Button data-testid="add-position-button" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm hover:shadow-indigo-500/20 transition-all">
                 <Plus className="mr-2 h-4 w-4" />
