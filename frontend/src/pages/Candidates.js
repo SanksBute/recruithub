@@ -20,6 +20,9 @@ const Candidates = () => {
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [bulkUploadFiles, setBulkUploadFiles] = useState([]);
+  const [bulkPositionId, setBulkPositionId] = useState('');
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     position_id: '',
     name: '',
