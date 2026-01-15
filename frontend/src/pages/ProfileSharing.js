@@ -117,22 +117,31 @@ const ProfileSharing = () => {
 
   const handleSendEmail = async () => {
     try {
-      await axios.post(
-        `${API_URL}/candidates/share-email-draft`,
+      const response = await axios.post(
+        `${API_URL}/email/send`,
         {
           to: emailData.to.split(',').map(e => e.trim()),
           subject: emailData.subject,
           body: emailData.body,
-          candidate_ids: selectedCandidates
+          candidate_ids: selectedCandidates,
+          attachment_base64: pdfBase64,
+          attachment_filename: `candidates_${new Date().getTime()}.pdf`
         },
         getAuthHeader()
       );
-      toast.success('Email draft created! Profiles marked as shared.');
+      toast.success('Email sent successfully! Profiles marked as shared.');
       setShowEmailDialog(false);
       setSelectedCandidates([]);
+      setPdfBase64('');
       fetchCandidates();
     } catch (error) {
-      toast.error('Failed to create email draft');
+      if (error.response?.status === 400 && error.response?.data?.detail?.includes('not configured')) {
+        toast.error('Email not configured. Please ask admin to configure SMTP settings first.');
+      } else if (error.response?.status === 401) {
+        toast.error('Email authentication failed. Please check SMTP credentials.');
+      } else {
+        toast.error(error.response?.data?.detail || 'Failed to send email');
+      }
     }
   };
 
