@@ -1261,6 +1261,94 @@ async def update_interview(interview_id: str, feedback: Optional[str] = None, re
     
     return {"message": "Interview updated successfully"}
 
+# Email configuration and sending
+@api_router.post("/email/configure")
+async def configure_email(email_config: EmailConfig, current_user: dict = Depends(check_role([UserRole.ADMIN]))):
+    """Configure email settings (stored in database)"""
+    config_dict = email_config.model_dump()
+    config_dict["id"] = "email_config"
+    config_dict["updated_by"] = current_user["id"]
+    config_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.email_config.update_one(
+        {"id": "email_config"},
+        {"$set": config_dict},
+        upsert=True
+    )
+    
+    return {"message": "Email configuration saved successfully"}
+
+@api_router.get("/email/config")
+async def get_email_config(current_user: dict = Depends(check_role([UserRole.ADMIN]))):
+    """Get email configuration (without password)"""
+    config = await db.email_config.find_one({"id": "email_config"}, {"_id": 0, "smtp_password": 0})
+    if not config:
+        raise HTTPException(status_code=404, detail="Email not configured")
+    return config
+
+@api_router.post("/email/send")
+async def send_email(email_data: EmailSend, current_user: dict = Depends(check_role([UserRole.MANAGER, UserRole.TEAM_LEADER, UserRole.ADMIN]))):
+    """Send email with optional PDF attachment"""
+    # Get email configuration
+    config = await db.email_config.find_one({"id": "email_config"}, {"_id": 0})
+    if not config:
+        raise HTTPException(status_code=400, detail="Email not configured. Please configure SMTP settings first.")
+    
+    try:
+        # Create message
+        msg = MIMEMultipart()
+        msg['From'] = config['from_email']
+        msg['To'] = ', '.join(email_data.to)
+        msg['Subject'] = email_data.subject
+        
+        # Add body
+        msg.attach(MIMEText(email_data.body, 'plain'))
+        
+        # Add PDF attachment if provided
+        if email_data.attachment_base64 and email_data.attachment_filename:
+            pdf_data = base64.b64decode(email_data.attachment_base64)
+            part = MIMEBase('application', 'octet-stream')
+            part.set_payload(pdf_data)
+            encoders.encode_base64(part)
+            part.add_header('Content-Disposition', f'attachment; filename={email_data.attachment_filename}')
+            msg.attach(part)
+        
+        # Connect to SMTP server and send
+        if config['use_tls']:
+            server = smtplib.SMTP(config['smtp_host'], config['smtp_port'])
+            server.starttls()
+        else:
+            server = smtplib.SMTP(config['smtp_host'], config['smtp_port'])
+        
+        server.login(config['smtp_user'], config['smtp_password'])
+        server.send_message(msg)
+        server.quit()
+        
+        # Update candidate status if candidate_ids provided
+        if email_data.candidate_ids:
+            await db.candidates.update_many(
+                {"id": {"$in": email_data.candidate_ids}},
+                {"$set": {"status": CandidateStatus.SHARED_WITH_CLIENT.value}}
+            )
+            
+            # Log the sharing action
+            sharing_log = {
+                "id": str(uuid.uuid4()),
+                "candidate_ids": email_data.candidate_ids,
+                "shared_by": current_user["id"],
+                "shared_to": email_data.to,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            await db.profile_sharing_log.insert_one(sharing_log)
+        
+        return {"message": "Email sent successfully"}
+        
+    except smtplib.SMTPAuthenticationError:
+        raise HTTPException(status_code=401, detail="SMTP authentication failed. Please check email credentials.")
+    except Exception as e:
+        logger.error(f"Email sending failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
+
 # Dashboard statistics
 @api_router.get("/dashboard/stats")
 async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
