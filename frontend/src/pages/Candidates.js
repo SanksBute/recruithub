@@ -409,7 +409,7 @@ const Candidates = () => {
                     </div>
                   </div>
                   <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700">
-                    Add Candidate
+                    {editingCandidate ? 'Update Candidate' : 'Add Candidate'}
                   </Button>
                 </form>
               </TabsContent>
