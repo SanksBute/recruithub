@@ -410,7 +410,68 @@ def extract_experience_years(text: str) -> float:
     
     return 0.0
 
-def extract_skills(text: str) -> list:
+def extract_designation(text: str) -> str:
+    """Extract current designation from resume"""
+    common_titles = [
+        'Software Engineer', 'Senior Software Engineer', 'Lead Engineer', 'Tech Lead',
+        'Full Stack Developer', 'Frontend Developer', 'Backend Developer',
+        'DevOps Engineer', 'Data Scientist', 'Data Analyst', 'Business Analyst',
+        'Project Manager', 'Product Manager', 'Scrum Master',
+        'UI/UX Designer', 'Graphic Designer', 'System Administrator',
+        'Database Administrator', 'Network Engineer', 'Security Analyst',
+        'Quality Assurance Engineer', 'Test Engineer', 'Architect',
+        'Consultant', 'Team Leader', 'Manager', 'Director', 'VP', 'CTO', 'CEO'
+    ]
+    
+    text_lower = text.lower()
+    
+    # Search for designation patterns
+    for title in common_titles:
+        if title.lower() in text_lower:
+            return title
+    
+    # Try to find designation after keywords
+    patterns = [
+        r'(?:current role|position|designation|title)[\s:]+([^\n]+)',
+        r'(?:working as|employed as)[\s:]+([^\n]+)',
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            designation = match.group(1).strip()
+            if len(designation) < 50:
+                return designation
+    
+    return 'To be updated'
+
+def extract_location(text: str) -> str:
+    """Extract location from resume"""
+    # Indian cities pattern
+    cities = [
+        'Mumbai', 'Delhi', 'Bangalore', 'Bengaluru', 'Hyderabad', 'Chennai',
+        'Kolkata', 'Pune', 'Ahmedabad', 'Jaipur', 'Noida', 'Gurgaon', 'Gurugram'
+    ]
+    
+    text_lower = text.lower()
+    for city in cities:
+        if city.lower() in text_lower:
+            return city
+    
+    # Try to find location patterns
+    location_patterns = [
+        r'(?:location|city|address)[\s:]+([^\n]+)',
+        r'(?:based in|residing in)[\s:]+([^\n]+)'
+    ]
+    
+    for pattern in location_patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            location = match.group(1).strip()
+            if len(location) < 50:
+                return location
+    
+    return 'To be updated'
     """Extract skills from text"""
     common_skills = [
         'Python', 'Java', 'JavaScript', 'React', 'Angular', 'Node.js', 'MongoDB',
