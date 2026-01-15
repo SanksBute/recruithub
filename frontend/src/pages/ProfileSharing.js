@@ -303,7 +303,12 @@ const ProfileSharing = () => {
             </div>
             <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
               <p className="text-sm text-amber-800">
-                <strong>Note:</strong> This creates an email draft. In production, this would integrate with your email service.
+                <strong>Note:</strong> PDF with candidate profiles will be automatically attached to this email.
+              </p>
+            </div>
+            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+              <p className="text-sm text-green-800">
+                <strong>Ready to Send:</strong> Email will be sent using configured SMTP settings.
               </p>
             </div>
             <Button
