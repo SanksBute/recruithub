@@ -20,6 +20,7 @@ const Positions = () => {
   const [recruiters, setRecruiters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingPosition, setEditingPosition] = useState(null);
   const [formData, setFormData] = useState({
     client_id: '',
     job_title: '',
