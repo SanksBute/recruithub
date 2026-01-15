@@ -658,6 +658,19 @@ async def update_position(position_id: str, position_data: PositionCreate, curre
     updated_position = await db.positions.find_one({"id": position_id}, {"_id": 0})
     return updated_position
 
+@api_router.delete("/positions/{position_id}")
+async def delete_position(position_id: str, current_user: dict = Depends(check_role([UserRole.ADMIN]))):
+    # Check if position has candidates
+    candidates = await db.candidates.find_one({"position_id": position_id}, {"_id": 0})
+    if candidates:
+        raise HTTPException(status_code=400, detail="Cannot delete position with existing candidates")
+    
+    result = await db.positions.delete_one({"id": position_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Position not found")
+    
+    return {"message": "Position deleted successfully"}
+
 @api_router.post("/positions/{position_id}/upload-jd")
 async def upload_jd(position_id: str, file: UploadFile = File(...), current_user: dict = Depends(check_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.TEAM_LEADER]))):
     file_path = JD_DIR / f"{position_id}_{file.filename}"
