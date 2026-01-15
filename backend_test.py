@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List
 
 class RecruitmentAPITester:
-    def __init__(self, base_url="https://recruithub-8.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://talentportal-10.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.token = None
         self.user_data = None
