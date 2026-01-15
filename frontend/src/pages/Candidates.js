@@ -15,11 +15,12 @@ import { Plus, User, Mail, Phone, MapPin, Upload, FileText, Edit, Trash2, Downlo
 const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const Candidates = () => {
-  const { getAuthHeader } = useAuth();
+  const { getAuthHeader, user } = useAuth();
   const [candidates, setCandidates] = useState([]);
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingCandidate, setEditingCandidate] = useState(null);
   const [bulkUploadFiles, setBulkUploadFiles] = useState([]);
   const [bulkPositionId, setBulkPositionId] = useState('');
   const [uploading, setUploading] = useState(false);
