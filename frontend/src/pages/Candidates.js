@@ -496,16 +496,40 @@ const Candidates = () => {
             <Card key={candidate.id} data-testid={`candidate-card-${candidate.id}`} className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 rounded-xl">
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1">
                     <div className="p-2 bg-green-50 rounded-lg">
                       <User className="h-5 w-5 text-green-600" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <CardTitle className="text-lg" style={{ fontFamily: 'Manrope' }}>{candidate.name}</CardTitle>
                       <p className="text-sm text-slate-600">{candidate.current_designation}</p>
                     </div>
                   </div>
-                  <Badge className={getStatusColor(candidate.status)}>{candidate.status.replace('_', ' ')}</Badge>
+                  <div className="flex gap-1 items-start">
+                    <Badge className={getStatusColor(candidate.status)}>{candidate.status.replace('_', ' ')}</Badge>
+                    {canEdit && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(candidate)}
+                        data-testid={`edit-candidate-${candidate.id}`}
+                        className="h-8 w-8 p-0 ml-1"
+                      >
+                        <Edit className="h-4 w-4 text-slate-600" />
+                      </Button>
+                    )}
+                    {canDelete && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(candidate.id)}
+                        data-testid={`delete-candidate-${candidate.id}`}
+                        className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
