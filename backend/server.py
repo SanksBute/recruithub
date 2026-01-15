@@ -581,6 +581,127 @@ async def create_candidate(candidate_data: CandidateCreate, current_user: dict =
     await db.candidates.insert_one(candidate_dict)
     return candidate
 
+@api_router.post("/candidates/bulk-upload")
+async def bulk_upload_candidates(
+    position_id: str = Form(...),
+    files: List[UploadFile] = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Bulk upload resumes and automatically extract candidate information.
+    Supports PDF and DOCX files.
+    """
+    if not files:
+        raise HTTPException(status_code=400, detail="No files provided")
+    
+    results = {
+        "successful": [],
+        "failed": [],
+        "total": len(files)
+    }
+    
+    # Verify position exists
+    position = await db.positions.find_one({"id": position_id}, {"_id": 0})
+    if not position:
+        raise HTTPException(status_code=404, detail="Position not found")
+    
+    for file in files:
+        try:
+            # Validate file type
+            if not (file.filename.lower().endswith('.pdf') or file.filename.lower().endswith('.docx')):
+                results["failed"].append({
+                    "filename": file.filename,
+                    "error": "Unsupported file format. Only PDF and DOCX are supported."
+                })
+                continue
+            
+            # Save file temporarily
+            file_path = RESUME_DIR / f"temp_{uuid.uuid4()}_{file.filename}"
+            with open(file_path, "wb") as f:
+                content = await file.read()
+                f.write(content)
+            
+            # Parse resume
+            parsed_data = parse_resume(str(file_path))
+            
+            if not parsed_data or not parsed_data.get('name') or not parsed_data.get('email'):
+                results["failed"].append({
+                    "filename": file.filename,
+                    "error": "Could not extract required information (name/email) from resume"
+                })
+                # Clean up temp file
+                if file_path.exists():
+                    file_path.unlink()
+                continue
+            
+            # Check if candidate already exists
+            existing = await db.candidates.find_one({"email": parsed_data['email']}, {"_id": 0})
+            if existing:
+                results["failed"].append({
+                    "filename": file.filename,
+                    "error": f"Candidate with email {parsed_data['email']} already exists"
+                })
+                # Clean up temp file
+                if file_path.exists():
+                    file_path.unlink()
+                continue
+            
+            # Create candidate with default values for missing fields
+            candidate = Candidate(
+                name=parsed_data['name'],
+                email=parsed_data['email'],
+                contact_number=parsed_data.get('contact_number', 'Not provided'),
+                qualification='To be updated',
+                industry_sector='To be updated',
+                current_designation='To be updated',
+                department='To be updated',
+                current_location='To be updated',
+                current_ctc=0.0,
+                years_of_experience=parsed_data.get('years_of_experience', 0.0),
+                expected_ctc=0.0,
+                notice_period='To be updated',
+                position_id=position_id,
+                added_by=current_user["id"],
+                resume_file=file.filename
+            )
+            
+            candidate_dict = candidate.model_dump()
+            candidate_dict["created_at"] = candidate_dict["created_at"].isoformat()
+            
+            # Save to database
+            await db.candidates.insert_one(candidate_dict)
+            
+            # Rename temp file to permanent name
+            permanent_path = RESUME_DIR / f"{candidate.id}_{file.filename}"
+            file_path.rename(permanent_path)
+            
+            # Update candidate with permanent file path
+            await db.candidates.update_one(
+                {"id": candidate.id},
+                {"$set": {"resume_file": permanent_path.name}}
+            )
+            
+            results["successful"].append({
+                "filename": file.filename,
+                "candidate_name": parsed_data['name'],
+                "candidate_email": parsed_data['email'],
+                "candidate_id": candidate.id,
+                "extracted_skills": parsed_data.get('skills', []),
+                "years_of_experience": parsed_data.get('years_of_experience', 0.0)
+            })
+            
+        except Exception as e:
+            logger.error(f"Error processing file {file.filename}: {str(e)}")
+            results["failed"].append({
+                "filename": file.filename,
+                "error": str(e)
+            })
+            # Clean up temp file if it exists
+            if 'file_path' in locals() and file_path.exists():
+                file_path.unlink()
+    
+    return results
+
 @api_router.get("/candidates", response_model=List[Candidate])
 async def get_candidates(position_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
     query = {}
