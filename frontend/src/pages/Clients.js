@@ -16,6 +16,7 @@ const Clients = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
   const [formData, setFormData] = useState({
     client_name: '',
     industry: '',
