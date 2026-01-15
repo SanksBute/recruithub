@@ -265,6 +265,22 @@ class EmailDraft(BaseModel):
     body: str
     candidate_ids: List[str]
 
+class EmailConfig(BaseModel):
+    smtp_host: str
+    smtp_port: int
+    smtp_user: str
+    smtp_password: str
+    from_email: str
+    use_tls: bool = True
+
+class EmailSend(BaseModel):
+    to: List[str]
+    subject: str
+    body: str
+    candidate_ids: List[str] = []
+    attachment_base64: Optional[str] = None
+    attachment_filename: Optional[str] = None
+
 # Helper functions
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
