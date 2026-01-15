@@ -224,6 +224,9 @@ const Candidates = () => {
     return colors[status] || colors.sourced;
   };
 
+  const canEdit = ['admin', 'manager', 'team_leader'].includes(user?.role);
+  const canDelete = user?.role === 'admin';
+
   if (loading) {
     return <div className="text-center py-12">Loading...</div>;
   }
