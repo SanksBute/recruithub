@@ -168,6 +168,8 @@ const Positions = () => {
   };
 
   const canAddPosition = ['admin', 'manager', 'team_leader'].includes(user?.role);
+  const canEdit = ['admin', 'manager', 'team_leader'].includes(user?.role);
+  const canDelete = user?.role === 'admin';
 
   const getStatusColor = (status) => {
     const colors = {
