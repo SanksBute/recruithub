@@ -92,27 +92,39 @@ const ProfileSharing = () => {
       return;
     }
 
-    // Get client emails
-    const selectedCandidateData = candidates.filter(c => selectedCandidates.includes(c.id));
-    const clientEmails = new Set();
-    
-    for (const candidate of selectedCandidateData) {
-      const position = await axios.get(`${API_URL}/positions/${candidate.position_id}`, getAuthHeader());
-      const client = clients.find(c => c.id === position.data.client_id);
-      if (client && client.contact_emails) {
-        client.contact_emails.forEach(email => clientEmails.add(email));
+    try {
+      // First generate PDF
+      const pdfResponse = await axios.post(
+        `${API_URL}/candidates/generate-pdf`,
+        selectedCandidates,
+        getAuthHeader()
+      );
+      setPdfBase64(pdfResponse.data.pdf_base64);
+      
+      // Get client emails
+      const selectedCandidateData = candidates.filter(c => selectedCandidates.includes(c.id));
+      const clientEmails = new Set();
+      
+      for (const candidate of selectedCandidateData) {
+        const position = await axios.get(`${API_URL}/positions/${candidate.position_id}`, getAuthHeader());
+        const client = clients.find(c => c.id === position.data.client_id);
+        if (client && client.contact_emails) {
+          client.contact_emails.forEach(email => clientEmails.add(email));
+        }
       }
+
+      const subject = `Candidate Profiles - ${selectedCandidates.length} Candidate${selectedCandidates.length > 1 ? 's' : ''}`;
+      const body = `Dear Client,\n\nPlease find attached ${selectedCandidates.length} candidate profile${selectedCandidates.length > 1 ? 's' : ''} for your review.\n\nBest regards,\nRecruitHub Team`;
+
+      setEmailData({
+        to: Array.from(clientEmails).join(', '),
+        subject,
+        body
+      });
+      setShowEmailDialog(true);
+    } catch (error) {
+      toast.error('Failed to prepare email');
     }
-
-    const subject = `Candidate Profiles - ${selectedCandidates.length} Candidate${selectedCandidates.length > 1 ? 's' : ''}`;
-    const body = `Dear Client,\n\nPlease find attached ${selectedCandidates.length} candidate profile${selectedCandidates.length > 1 ? 's' : ''} for your review.\n\nBest regards,\nRecruitHub Team`;
-
-    setEmailData({
-      to: Array.from(clientEmails).join(', '),
-      subject,
-      body
-    });
-    setShowEmailDialog(true);
   };
 
   const handleSendEmail = async () => {
