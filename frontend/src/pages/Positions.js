@@ -214,7 +214,7 @@ const Positions = () => {
             </DialogTrigger>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle style={{ fontFamily: 'Manrope' }}>Add New Position</DialogTitle>
+                <DialogTitle style={{ fontFamily: 'Manrope' }}>{editingPosition ? 'Edit Position' : 'Add New Position'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
