@@ -472,6 +472,25 @@ def extract_location(text: str) -> str:
                 return location
     
     return 'To be updated'
+
+def extract_skills(text: str) -> list:
+    """Extract skills from text"""
+    common_skills = [
+        'Python', 'Java', 'JavaScript', 'React', 'Angular', 'Node.js', 'MongoDB',
+        'SQL', 'AWS', 'Azure', 'Docker', 'Kubernetes', 'Git', 'Agile', 'Scrum',
+        'Machine Learning', 'AI', 'Data Science', 'C++', 'C#', '.NET', 'PHP',
+        'Ruby', 'Go', 'Swift', 'Kotlin', 'TypeScript', 'HTML', 'CSS', 'REST API',
+        'GraphQL', 'Redis', 'PostgreSQL', 'MySQL', 'FastAPI', 'Django', 'Flask'
+    ]
+    
+    found_skills = []
+    text_lower = text.lower()
+    
+    for skill in common_skills:
+        if skill.lower() in text_lower:
+            found_skills.append(skill)
+    
+    return found_skills
     """Extract skills from text"""
     common_skills = [
         'Python', 'Java', 'JavaScript', 'React', 'Angular', 'Node.js', 'MongoDB',
