@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Building2, Briefcase, Users, Calendar, TrendingUp, AlertCircle } from 'lucide-react';
+import EmailSettings from '../components/EmailSettings';
 
 const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
