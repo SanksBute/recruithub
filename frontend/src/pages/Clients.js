@@ -50,26 +50,98 @@ const Clients = () => {
         ...formData,
         contact_emails: formData.contact_emails.split(',').map(e => e.trim()).filter(e => e)
       };
-      await axios.post(`${API_URL}/clients`, payload, getAuthHeader());
-      toast.success('Client created successfully!');
+      
+      if (editingClient) {
+        await axios.put(`${API_URL}/clients/${editingClient.id}`, payload, getAuthHeader());
+        toast.success('Client updated successfully!');
+      } else {
+        await axios.post(`${API_URL}/clients`, payload, getAuthHeader());
+        toast.success('Client created successfully!');
+      }
+      
       setDialogOpen(false);
-      setFormData({
-        client_name: '',
-        industry: '',
-        organization_type: '',
-        headquarter_location: '',
-        other_branches: '',
-        website: '',
-        core_business: '',
-        contact_emails: ''
-      });
+      setEditingClient(null);
+      resetForm();
       fetchClients();
     } catch (error) {
-      toast.error('Failed to create client');
+      toast.error(editingClient ? 'Failed to update client' : 'Failed to create client');
+    }
+  };
+
+  const handleEdit = (client) => {
+    setEditingClient(client);
+    setFormData({
+      client_name: client.client_name,
+      industry: client.industry,
+      organization_type: client.organization_type,
+      headquarter_location: client.headquarter_location,
+      other_branches: client.other_branches || '',
+      website: client.website || '',
+      core_business: client.core_business,
+      contact_emails: client.contact_emails?.join(', ') || ''
+    });
+    setDialogOpen(true);
+  };
+
+  const handleDelete = async (clientId) => {
+    if (!window.confirm('Are you sure you want to delete this client? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      await axios.delete(`${API_URL}/clients/${clientId}`, getAuthHeader());
+      toast.success('Client deleted successfully!');
+      fetchClients();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete client');
+    }
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/export/clients`, {
+        ...getAuthHeader(),
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'clients.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      toast.success('Clients exported successfully!');
+    } catch (error) {
+      toast.error('Failed to export clients');
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      client_name: '',
+      industry: '',
+      organization_type: '',
+      headquarter_location: '',
+      other_branches: '',
+      website: '',
+      core_business: '',
+      contact_emails: ''
+    });
+  };
+
+  const handleDialogClose = (open) => {
+    setDialogOpen(open);
+    if (!open) {
+      setEditingClient(null);
+      resetForm();
     }
   };
 
   const canAddClient = ['admin', 'manager', 'team_leader'].includes(user?.role);
+  const canEdit = ['admin', 'manager', 'team_leader'].includes(user?.role);
+  const canDelete = user?.role === 'admin';
 
   if (loading) {
     return <div className="text-center py-12">Loading...</div>;
@@ -84,100 +156,113 @@ const Clients = () => {
           </h1>
           <p className="text-slate-600 mt-2">{clients.length} total clients</p>
         </div>
-        {canAddClient && (
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button data-testid="add-client-button" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm hover:shadow-indigo-500/20 transition-all">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Client
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle style={{ fontFamily: 'Manrope' }}>Add New Client</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="client_name">Client Name *</Label>
-                    <Input
-                      id="client_name"
-                      data-testid="client-name-input"
-                      value={formData.client_name}
-                      onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="industry">Industry *</Label>
-                    <Input
-                      id="industry"
-                      value={formData.industry}
-                      onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="organization_type">Organization Type *</Label>
-                    <Input
-                      id="organization_type"
-                      value={formData.organization_type}
-                      onChange={(e) => setFormData({ ...formData, organization_type: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="headquarter_location">Headquarter Location *</Label>
-                    <Input
-                      id="headquarter_location"
-                      value={formData.headquarter_location}
-                      onChange={(e) => setFormData({ ...formData, headquarter_location: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="other_branches">Other Branches</Label>
-                    <Input
-                      id="other_branches"
-                      value={formData.other_branches}
-                      onChange={(e) => setFormData({ ...formData, other_branches: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="website">Website</Label>
-                    <Input
-                      id="website"
-                      type="url"
-                      value={formData.website}
-                      onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="core_business">Core Business *</Label>
-                  <Input
-                    id="core_business"
-                    value={formData.core_business}
-                    onChange={(e) => setFormData({ ...formData, core_business: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="contact_emails">Contact Emails (comma-separated)</Label>
-                  <Input
-                    id="contact_emails"
-                    placeholder="email1@example.com, email2@example.com"
-                    value={formData.contact_emails}
-                    onChange={(e) => setFormData({ ...formData, contact_emails: e.target.value })}
-                  />
-                </div>
-                <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700">
-                  Create Client
+        <div className="flex gap-3">
+          <Button
+            onClick={handleExportCSV}
+            variant="outline"
+            data-testid="export-clients-csv"
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
+          {canAddClient && (
+            <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
+              <DialogTrigger asChild>
+                <Button data-testid="add-client-button" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm hover:shadow-indigo-500/20 transition-all">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Client
                 </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        )}
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle style={{ fontFamily: 'Manrope' }}>
+                    {editingClient ? 'Edit Client' : 'Add New Client'}
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="client_name">Client Name *</Label>
+                      <Input
+                        id="client_name"
+                        data-testid="client-name-input"
+                        value={formData.client_name}
+                        onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="industry">Industry *</Label>
+                      <Input
+                        id="industry"
+                        value={formData.industry}
+                        onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="organization_type">Organization Type *</Label>
+                      <Input
+                        id="organization_type"
+                        value={formData.organization_type}
+                        onChange={(e) => setFormData({ ...formData, organization_type: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="headquarter_location">Headquarter Location *</Label>
+                      <Input
+                        id="headquarter_location"
+                        value={formData.headquarter_location}
+                        onChange={(e) => setFormData({ ...formData, headquarter_location: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="other_branches">Other Branches</Label>
+                      <Input
+                        id="other_branches"
+                        value={formData.other_branches}
+                        onChange={(e) => setFormData({ ...formData, other_branches: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="website">Website</Label>
+                      <Input
+                        id="website"
+                        type="url"
+                        value={formData.website}
+                        onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="core_business">Core Business *</Label>
+                    <Input
+                      id="core_business"
+                      value={formData.core_business}
+                      onChange={(e) => setFormData({ ...formData, core_business: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contact_emails">Contact Emails (comma-separated)</Label>
+                    <Input
+                      id="contact_emails"
+                      placeholder="email1@example.com, email2@example.com"
+                      value={formData.contact_emails}
+                      onChange={(e) => setFormData({ ...formData, contact_emails: e.target.value })}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700">
+                    {editingClient ? 'Update Client' : 'Create Client'}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -185,14 +270,38 @@ const Clients = () => {
           <Card key={client.id} data-testid={`client-card-${client.id}`} className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 rounded-xl">
             <CardHeader>
               <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-1">
                   <div className="p-2 bg-indigo-50 rounded-lg">
                     <Building2 className="h-5 w-5 text-indigo-600" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <CardTitle className="text-lg" style={{ fontFamily: 'Manrope' }}>{client.client_name}</CardTitle>
                     <p className="text-sm text-slate-600">{client.industry}</p>
                   </div>
+                </div>
+                <div className="flex gap-1">
+                  {canEdit && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(client)}
+                      data-testid={`edit-client-${client.id}`}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Edit className="h-4 w-4 text-slate-600" />
+                    </Button>
+                  )}
+                  {canDelete && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(client.id)}
+                      data-testid={`delete-client-${client.id}`}
+                      className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardHeader>
