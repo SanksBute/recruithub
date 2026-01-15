@@ -814,6 +814,198 @@ async def bulk_upload_candidates(
     
     return results
 
+@api_router.put("/candidates/{candidate_id}")
+async def update_candidate(candidate_id: str, candidate_data: CandidateCreate, current_user: dict = Depends(check_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.TEAM_LEADER]))):
+    update_data = candidate_data.model_dump()
+    result = await db.candidates.update_one(
+        {"id": candidate_id},
+        {"$set": update_data}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    
+    updated_candidate = await db.candidates.find_one({"id": candidate_id}, {"_id": 0})
+    return updated_candidate
+
+@api_router.delete("/candidates/{candidate_id}")
+async def delete_candidate(candidate_id: str, current_user: dict = Depends(check_role([UserRole.ADMIN]))):
+    result = await db.candidates.delete_one({"id": candidate_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    
+    return {"message": "Candidate deleted successfully"}
+
+@api_router.delete("/interviews/{interview_id}")
+async def delete_interview(interview_id: str, current_user: dict = Depends(check_role([UserRole.ADMIN, UserRole.MANAGER, UserRole.TEAM_LEADER]))):
+    result = await db.interviews.delete_one({"id": interview_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Interview not found")
+    
+    return {"message": "Interview deleted successfully"}
+
+@api_router.delete("/users/{user_id}")
+async def delete_user(user_id: str, current_user: dict = Depends(check_role([UserRole.ADMIN]))):
+    # Prevent deleting yourself
+    if user_id == current_user["id"]:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    result = await db.users.delete_one({"id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "User deleted successfully"}
+
+# CSV Export endpoints
+@api_router.get("/export/clients")
+async def export_clients_csv(current_user: dict = Depends(get_current_user)):
+    clients = await db.clients.find({}, {"_id": 0}).to_list(10000)
+    
+    if not clients:
+        raise HTTPException(status_code=404, detail="No clients found")
+    
+    output = StringIO()
+    writer = csv.DictWriter(output, fieldnames=['id', 'client_name', 'industry', 'organization_type', 
+                                                  'headquarter_location', 'other_branches', 'website', 
+                                                  'core_business', 'created_at'])
+    writer.writeheader()
+    
+    for client in clients:
+        writer.writerow({
+            'id': client.get('id'),
+            'client_name': client.get('client_name'),
+            'industry': client.get('industry'),
+            'organization_type': client.get('organization_type'),
+            'headquarter_location': client.get('headquarter_location'),
+            'other_branches': client.get('other_branches', ''),
+            'website': client.get('website', ''),
+            'core_business': client.get('core_business'),
+            'created_at': client.get('created_at')
+        })
+    
+    output.seek(0)
+    return Response(content=output.getvalue(), media_type="text/csv", 
+                   headers={"Content-Disposition": "attachment; filename=clients.csv"})
+
+@api_router.get("/export/positions")
+async def export_positions_csv(current_user: dict = Depends(get_current_user)):
+    positions = await db.positions.find({}, {"_id": 0}).to_list(10000)
+    
+    if not positions:
+        raise HTTPException(status_code=404, detail="No positions found")
+    
+    output = StringIO()
+    writer = csv.DictWriter(output, fieldnames=['id', 'job_title', 'department', 'num_openings', 
+                                                  'location', 'work_mode', 'qualification', 'experience',
+                                                  'status', 'created_at'])
+    writer.writeheader()
+    
+    for position in positions:
+        writer.writerow({
+            'id': position.get('id'),
+            'job_title': position.get('job_title'),
+            'department': position.get('department'),
+            'num_openings': position.get('num_openings'),
+            'location': position.get('location'),
+            'work_mode': position.get('work_mode'),
+            'qualification': position.get('qualification'),
+            'experience': position.get('experience'),
+            'status': position.get('status'),
+            'created_at': position.get('created_at')
+        })
+    
+    output.seek(0)
+    return Response(content=output.getvalue(), media_type="text/csv",
+                   headers={"Content-Disposition": "attachment; filename=positions.csv"})
+
+@api_router.get("/export/candidates")
+async def export_candidates_csv(current_user: dict = Depends(get_current_user)):
+    candidates = await db.candidates.find({}, {"_id": 0}).to_list(10000)
+    
+    if not candidates:
+        raise HTTPException(status_code=404, detail="No candidates found")
+    
+    output = StringIO()
+    writer = csv.DictWriter(output, fieldnames=['id', 'name', 'email', 'contact_number', 
+                                                  'qualification', 'current_designation', 'department',
+                                                  'current_location', 'years_of_experience', 'current_ctc',
+                                                  'expected_ctc', 'notice_period', 'status', 'created_at'])
+    writer.writeheader()
+    
+    for candidate in candidates:
+        writer.writerow({
+            'id': candidate.get('id'),
+            'name': candidate.get('name'),
+            'email': candidate.get('email'),
+            'contact_number': candidate.get('contact_number'),
+            'qualification': candidate.get('qualification'),
+            'current_designation': candidate.get('current_designation'),
+            'department': candidate.get('department'),
+            'current_location': candidate.get('current_location'),
+            'years_of_experience': candidate.get('years_of_experience'),
+            'current_ctc': candidate.get('current_ctc'),
+            'expected_ctc': candidate.get('expected_ctc'),
+            'notice_period': candidate.get('notice_period'),
+            'status': candidate.get('status'),
+            'created_at': candidate.get('created_at')
+        })
+    
+    output.seek(0)
+    return Response(content=output.getvalue(), media_type="text/csv",
+                   headers={"Content-Disposition": "attachment; filename=candidates.csv"})
+
+@api_router.get("/export/interviews")
+async def export_interviews_csv(current_user: dict = Depends(get_current_user)):
+    interviews = await db.interviews.find({}, {"_id": 0}).to_list(10000)
+    
+    if not interviews:
+        raise HTTPException(status_code=404, detail="No interviews found")
+    
+    output = StringIO()
+    writer = csv.DictWriter(output, fieldnames=['id', 'candidate_id', 'position_id', 'interview_mode',
+                                                  'interview_date', 'action_plan', 'feedback', 'result', 'created_at'])
+    writer.writeheader()
+    
+    for interview in interviews:
+        writer.writerow({
+            'id': interview.get('id'),
+            'candidate_id': interview.get('candidate_id'),
+            'position_id': interview.get('position_id'),
+            'interview_mode': interview.get('interview_mode'),
+            'interview_date': interview.get('interview_date'),
+            'action_plan': interview.get('action_plan', ''),
+            'feedback': interview.get('feedback', ''),
+            'result': interview.get('result', ''),
+            'created_at': interview.get('created_at')
+        })
+    
+    output.seek(0)
+    return Response(content=output.getvalue(), media_type="text/csv",
+                   headers={"Content-Disposition": "attachment; filename=interviews.csv"})
+
+@api_router.get("/export/users")
+async def export_users_csv(current_user: dict = Depends(check_role([UserRole.ADMIN, UserRole.MANAGER]))):
+    users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(10000)
+    
+    if not users:
+        raise HTTPException(status_code=404, detail="No users found")
+    
+    output = StringIO()
+    writer = csv.DictWriter(output, fieldnames=['id', 'name', 'email', 'role', 'created_at'])
+    writer.writeheader()
+    
+    for user in users:
+        writer.writerow({
+            'id': user.get('id'),
+            'name': user.get('name'),
+            'email': user.get('email'),
+            'role': user.get('role'),
+            'created_at': user.get('created_at')
+        })
+    
+    output.seek(0)
+    return Response(content=output.getvalue(), media_type="text/csv",
+                   headers={"Content-Disposition": "attachment; filename=users.csv"})
+
 @api_router.get("/candidates", response_model=List[Candidate])
 async def get_candidates(position_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
     query = {}
