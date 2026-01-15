@@ -86,12 +86,84 @@ const Positions = () => {
         must_have_skills: formData.must_have_skills.split(',').map(s => s.trim()).filter(s => s),
         good_to_have_skills: formData.good_to_have_skills.split(',').map(s => s.trim()).filter(s => s)
       };
-      await axios.post(`${API_URL}/positions`, payload, getAuthHeader());
-      toast.success('Position created successfully!');
+      
+      if (editingPosition) {
+        await axios.put(`${API_URL}/positions/${editingPosition.id}`, payload, getAuthHeader());
+        toast.success('Position updated successfully!');
+      } else {
+        await axios.post(`${API_URL}/positions`, payload, getAuthHeader());
+        toast.success('Position created successfully!');
+      }
+      
       setDialogOpen(false);
+      setEditingPosition(null);
       fetchPositions();
     } catch (error) {
-      toast.error('Failed to create position');
+      toast.error(editingPosition ? 'Failed to update position' : 'Failed to create position');
+    }
+  };
+
+  const handleEdit = (position) => {
+    setEditingPosition(position);
+    setFormData({
+      client_id: position.client_id,
+      job_title: position.job_title,
+      department: position.department,
+      num_openings: position.num_openings,
+      reason_for_hiring: position.reason_for_hiring,
+      team_size: position.team_size || '',
+      location: position.location,
+      work_mode: position.work_mode,
+      working_days: position.working_days,
+      qualification: position.qualification,
+      experience: position.experience,
+      must_have_skills: position.must_have_skills.join(', '),
+      good_to_have_skills: position.good_to_have_skills.join(', '),
+      gender_preference: position.gender_preference || '',
+      assigned_recruiters: position.assigned_recruiters || []
+    });
+    setDialogOpen(true);
+  };
+
+  const handleDelete = async (positionId) => {
+    if (!window.confirm('Are you sure you want to delete this position? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      await axios.delete(`${API_URL}/positions/${positionId}`, getAuthHeader());
+      toast.success('Position deleted successfully!');
+      fetchPositions();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete position');
+    }
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/export/positions`, {
+        ...getAuthHeader(),
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'positions.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      toast.success('Positions exported successfully!');
+    } catch (error) {
+      toast.error('Failed to export positions');
+    }
+  };
+
+  const handleDialogClose = (open) => {
+    setDialogOpen(open);
+    if (!open) {
+      setEditingPosition(null);
     }
   };
 
