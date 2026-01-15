@@ -310,6 +310,127 @@ async def create_default_admin():
         await db.users.insert_one(admin_dict)
         logger.info("Default admin created: admin@recruitment.com / Admin@123")
 
+# Resume parsing utilities
+def extract_text_from_pdf(file_path: str) -> str:
+    """Extract text from PDF file"""
+    try:
+        text = ""
+        with pdfplumber.open(file_path) as pdf:
+            for page in pdf.pages:
+                text += page.extract_text() or ""
+        return text
+    except Exception as e:
+        logger.error(f"Error extracting PDF text: {str(e)}")
+        return ""
+
+def extract_text_from_docx(file_path: str) -> str:
+    """Extract text from DOCX file"""
+    try:
+        doc = Document(file_path)
+        text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
+        return text
+    except Exception as e:
+        logger.error(f"Error extracting DOCX text: {str(e)}")
+        return ""
+
+def extract_email(text: str) -> str:
+    """Extract email from text"""
+    email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    emails = re.findall(email_pattern, text)
+    return emails[0] if emails else ""
+
+def extract_phone(text: str) -> str:
+    """Extract phone number from text"""
+    phone_patterns = [
+        r'\+?\d{1,3}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}',
+        r'\d{10}',
+        r'\+\d{12}'
+    ]
+    for pattern in phone_patterns:
+        phones = re.findall(pattern, text)
+        if phones:
+            return re.sub(r'[^\d+]', '', phones[0])
+    return ""
+
+def extract_name(text: str) -> str:
+    """Extract name from resume (usually first line or after 'Name:')"""
+    lines = [line.strip() for line in text.split('\n') if line.strip()]
+    
+    # Try to find name after "Name:" label
+    for line in lines:
+        if re.match(r'(name|full name|candidate name)[\s:]+(.+)', line, re.IGNORECASE):
+            match = re.search(r'(name|full name|candidate name)[\s:]+(.+)', line, re.IGNORECASE)
+            if match:
+                return match.group(2).strip()
+    
+    # Otherwise, assume first non-empty line is name
+    for line in lines[:5]:
+        # Skip lines that are likely headers or contact info
+        if not re.search(r'(resume|cv|curriculum|email|phone|address)', line, re.IGNORECASE):
+            if len(line.split()) <= 4 and len(line) < 50:
+                return line
+    
+    return "Unknown"
+
+def extract_experience_years(text: str) -> float:
+    """Extract years of experience from text"""
+    experience_patterns = [
+        r'(\d+)\+?\s*(?:years?|yrs?)[\s\w]*(?:of)?\s*(?:experience|exp)',
+        r'(?:experience|exp)[\s:]*(\d+)\+?\s*(?:years?|yrs?)',
+        r'(\d+)\+?\s*(?:years?|yrs?)'
+    ]
+    
+    for pattern in experience_patterns:
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        if matches:
+            return float(matches[0])
+    
+    return 0.0
+
+def extract_skills(text: str) -> list:
+    """Extract skills from text"""
+    common_skills = [
+        'Python', 'Java', 'JavaScript', 'React', 'Angular', 'Node.js', 'MongoDB',
+        'SQL', 'AWS', 'Azure', 'Docker', 'Kubernetes', 'Git', 'Agile', 'Scrum',
+        'Machine Learning', 'AI', 'Data Science', 'C++', 'C#', '.NET', 'PHP',
+        'Ruby', 'Go', 'Swift', 'Kotlin', 'TypeScript', 'HTML', 'CSS', 'REST API',
+        'GraphQL', 'Redis', 'PostgreSQL', 'MySQL', 'FastAPI', 'Django', 'Flask'
+    ]
+    
+    found_skills = []
+    text_lower = text.lower()
+    
+    for skill in common_skills:
+        if skill.lower() in text_lower:
+            found_skills.append(skill)
+    
+    return found_skills
+
+def parse_resume(file_path: str) -> dict:
+    """Parse resume and extract candidate information"""
+    # Determine file type and extract text
+    if file_path.lower().endswith('.pdf'):
+        text = extract_text_from_pdf(file_path)
+    elif file_path.lower().endswith('.docx'):
+        text = extract_text_from_docx(file_path)
+    else:
+        return None
+    
+    if not text:
+        return None
+    
+    # Extract information
+    candidate_data = {
+        'name': extract_name(text),
+        'email': extract_email(text),
+        'contact_number': extract_phone(text),
+        'years_of_experience': extract_experience_years(text),
+        'skills': extract_skills(text),
+        'raw_text': text[:500]  # Store first 500 chars for reference
+    }
+    
+    return candidate_data
+
 # Auth routes
 @api_router.post("/auth/register")
 async def register(user_data: UserCreate, current_user: dict = Depends(check_role([UserRole.ADMIN, UserRole.MANAGER]))):
