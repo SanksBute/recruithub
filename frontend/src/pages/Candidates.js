@@ -74,12 +74,82 @@ const Candidates = () => {
         expected_ctc: parseFloat(formData.expected_ctc),
         years_of_experience: parseFloat(formData.years_of_experience)
       };
-      await axios.post(`${API_URL}/candidates`, payload, getAuthHeader());
-      toast.success('Candidate added successfully!');
+      
+      if (editingCandidate) {
+        await axios.put(`${API_URL}/candidates/${editingCandidate.id}`, payload, getAuthHeader());
+        toast.success('Candidate updated successfully!');
+      } else {
+        await axios.post(`${API_URL}/candidates`, payload, getAuthHeader());
+        toast.success('Candidate added successfully!');
+      }
+      
       setDialogOpen(false);
+      setEditingCandidate(null);
       fetchCandidates();
     } catch (error) {
-      toast.error('Failed to add candidate');
+      toast.error(editingCandidate ? 'Failed to update candidate' : 'Failed to add candidate');
+    }
+  };
+
+  const handleEdit = (candidate) => {
+    setEditingCandidate(candidate);
+    setFormData({
+      position_id: candidate.position_id,
+      name: candidate.name,
+      email: candidate.email,
+      contact_number: candidate.contact_number,
+      qualification: candidate.qualification,
+      industry_sector: candidate.industry_sector,
+      current_designation: candidate.current_designation,
+      department: candidate.department,
+      current_location: candidate.current_location,
+      current_ctc: candidate.current_ctc,
+      years_of_experience: candidate.years_of_experience,
+      expected_ctc: candidate.expected_ctc,
+      notice_period: candidate.notice_period
+    });
+    setDialogOpen(true);
+  };
+
+  const handleDelete = async (candidateId) => {
+    if (!window.confirm('Are you sure you want to delete this candidate? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      await axios.delete(`${API_URL}/candidates/${candidateId}`, getAuthHeader());
+      toast.success('Candidate deleted successfully!');
+      fetchCandidates();
+    } catch (error) {
+      toast.error('Failed to delete candidate');
+    }
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/export/candidates`, {
+        ...getAuthHeader(),
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'candidates.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      toast.success('Candidates exported successfully!');
+    } catch (error) {
+      toast.error('Failed to export candidates');
+    }
+  };
+
+  const handleDialogClose = (open) => {
+    setDialogOpen(open);
+    if (!open) {
+      setEditingCandidate(null);
     }
   };
 
