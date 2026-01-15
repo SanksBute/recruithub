@@ -351,7 +351,7 @@ const Positions = () => {
                   />
                 </div>
                 <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700">
-                  Create Position
+                  {editingPosition ? 'Update Position' : 'Create Position'}
                 </Button>
               </form>
             </DialogContent>
